@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "mcp.servers.snowflake-retail.enabled": true,
+    "python.defaultInterpreterPath": "./venv/Scripts/python.exe",
+    "terminal.integrated.env.windows": {
+      "SNOWFLAKE_ACCOUNT": "nfhtxdc-gg96899",
+      "SNOWFLAKE_ROLE": "MCP_RETAIL_ROLE",
+      "SNOWFLAKE_WAREHOUSE": "COMPUTE_WH"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "continue.continue",
+      "GitHub.copilot",
+      "GitHub.copilot-chat",
+      "ms-python.python"
+    ]
+  }
+}

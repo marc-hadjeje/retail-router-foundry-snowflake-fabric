@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test MCP Server Connection",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_mcp_server.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "SNOWFLAKE_ACCOUNT": "nfhtxdc-gg96899",
+                "SNOWFLAKE_ROLE": "MCP_RETAIL_ROLE",
+                "SNOWFLAKE_WAREHOUSE": "COMPUTE_WH"
+            },
+            "args": []
+        },
+        {
+            "name": "Debug MCP Client",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/@modelcontextprotocol/server-snowflake/dist/index.js",
+            "args": [
+                "--endpoint", "https://nfhtxdc-gg96899.snowflakecomputing.com/api/v2/databases/RETAIL_DEMO/schemas/PUBLIC/mcp-servers/retail_mcp_server",
+                "--debug"
+            ],
+            "env": {
+                "SNOWFLAKE_ACCOUNT": "nfhtxdc-gg96899",
+                "SNOWFLAKE_ROLE": "MCP_RETAIL_ROLE",
+                "SNOWFLAKE_WAREHOUSE": "COMPUTE_WH"
+            },
+            "console": "integratedTerminal",
+            "skipFiles": ["<node_internals>/**"]
+        }
+    ]
+}

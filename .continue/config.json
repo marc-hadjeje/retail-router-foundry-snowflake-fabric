@@ -1,0 +1,42 @@
+{
+  "models": [
+    {
+      "title": "Claude 3.5 Sonnet with Snowflake Agents",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "apiKey": "YOUR_ANTHROPIC_API_KEY"
+    }
+  ],
+  "mcpServers": [
+    {
+      "name": "snowflake-retail",
+      "transport": {
+        "type": "http", 
+        "url": "https://nfhtxdc-gg96899.snowflakecomputing.com/api/v2/databases/RETAIL_DEMO/schemas/PUBLIC/mcp-servers/retail_mcp_server"
+      },
+      "auth": {
+        "type": "snowflake",
+        "account": "nfhtxdc-gg96899",
+        "role": "MCP_RETAIL_ROLE",
+        "warehouse": "COMPUTE_WH"
+      },
+      "env": {
+        "SNOWFLAKE_USER": "YOUR_SNOWFLAKE_USER",
+        "SNOWFLAKE_PASSWORD": "YOUR_SNOWFLAKE_PASSWORD"
+      }
+    }
+  ],
+  "customCommands": [
+    {
+      "name": "analyze-retail",
+      "prompt": "Utilisez l'agent snowflake-retail-agent pour analyser les données retail. Question: {input}",
+      "description": "Analyser les données retail avec l'agent Snowflake"
+    },
+    {
+      "name": "segment-clients",
+      "prompt": "Utilisez retail-client-analysis pour segmenter les clients. Type d'analyse: {input}",
+      "description": "Segmentation clients avec l'IA Snowflake"
+    }
+  ],
+  "systemMessage": "Vous avez accès aux agents Snowflake retail via MCP. Utilisez-les pour analyser les données de vente et clients."
+}

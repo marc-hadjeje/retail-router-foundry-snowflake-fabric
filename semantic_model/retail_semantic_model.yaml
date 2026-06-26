@@ -1,0 +1,279 @@
+# ===============================================
+# 🧠 MODÈLE SÉMANTIQUE CORTEX ANALYST  
+# Configuration YAML pour agents IA intelligents
+# ===============================================
+
+name: retail_business_model
+description: "Modèle sémantique pour l'analyse retail avec agents IA Cortex"
+
+# ===============================================
+# CONNEXIONS ET SOURCES DE DONNÉES
+# ===============================================
+connections:
+  - name: retail_demo_connection
+    type: snowflake
+    database: RETAIL_DEMO
+    schema: PUBLIC
+    warehouse: COMPUTE_WH
+
+# ===============================================
+# TABLES LOGIQUES MÉTIER
+# ===============================================
+logical_tables:
+  
+  # 👥 DIMENSION CLIENTS
+  - name: clients_dimension
+    description: "Dimension clients avec segmentation et géographie"
+    table: CUSTOMERS
+    dimensions:
+      - name: customer_id
+        type: number
+        description: "Identifiant unique du client"
+        primary_key: true
+      
+      - name: client_nom_complet
+        type: text
+        expr: "first_name || ' ' || last_name"
+        description: "Nom complet du client"
+        
+      - name: client_email
+        type: text
+        expr: "email"
+        description: "Adresse email du client"
+        
+      - name: client_ville
+        type: text
+        expr: "city"
+        description: "Ville de résidence du client"
+        
+      - name: client_region
+        type: text  
+        expr: "region"
+        description: "Région géographique du client"
+
+  # 🛍️ DIMENSION PRODUITS
+  - name: produits_dimension
+    description: "Catalogue produits avec marques et catégories"
+    table: PRODUCTS
+    dimensions:
+      - name: product_id
+        type: number
+        description: "Identifiant unique du produit"
+        primary_key: true
+        
+      - name: nom_produit
+        type: text
+        expr: "name"
+        description: "Nom commercial du produit"
+        
+      - name: marque_produit
+        type: text
+        expr: "brand"
+        description: "Marque du produit"
+        
+      - name: prix_catalogue
+        type: number
+        expr: "price"
+        description: "Prix de vente conseillé en euros"
+
+  # 🏷️ DIMENSION CATÉGORIES
+  - name: categories_dimension
+    description: "Segmentation par catégories produits"
+    table: CATEGORIES
+    dimensions:
+      - name: category_id
+        type: number
+        description: "Identifiant de la catégorie"
+        primary_key: true
+        
+      - name: nom_categorie
+        type: text
+        expr: "name"
+        description: "Nom de la catégorie produit"
+
+  # 🏪 DIMENSION MAGASINS
+  - name: magasins_dimension
+    description: "Réseau de distribution retail"
+    table: STORES
+    dimensions:
+      - name: store_id
+        type: number
+        description: "Identifiant unique du magasin"
+        primary_key: true
+        
+      - name: nom_magasin
+        type: text
+        expr: "name"
+        description: "Nom commercial du magasin"
+        
+      - name: ville_magasin
+        type: text
+        expr: "city"
+        description: "Ville d'implantation du magasin"
+        
+      - name: region_magasin
+        type: text
+        expr: "region"
+        description: "Région géographique du magasin"
+
+  # 📊 TABLE DE FAITS: COMMANDES
+  - name: commandes_fait
+    description: "Table de faits des transactions retail"
+    table: ORDERS
+    dimensions:
+      - name: order_id
+        type: number
+        description: "Numéro de commande"
+        primary_key: true
+        
+      - name: date_commande
+        type: date
+        expr: "order_date"
+        description: "Date de la commande"
+        
+      - name: customer_id
+        type: number
+        description: "Client ayant passé la commande"
+        
+      - name: store_id
+        type: number
+        description: "Magasin de la commande"
+    
+    measures:
+      - name: chiffre_affaires
+        type: sum
+        expr: "total_amount"
+        description: "Chiffre d'affaires en euros"
+        
+      - name: nombre_commandes
+        type: count
+        description: "Nombre total de commandes"
+        
+      - name: panier_moyen
+        type: avg
+        expr: "total_amount"
+        description: "Montant moyen par commande en euros"
+
+  # 🛒 TABLE DE FAITS: DÉTAILS COMMANDES
+  - name: ventes_detail_fait
+    description: "Détail des articles vendus"
+    table: ORDER_ITEMS
+    dimensions:
+      - name: order_item_id
+        type: number
+        description: "Identifiant ligne de commande"
+        primary_key: true
+        
+      - name: order_id
+        type: number
+        description: "Numéro de commande parent"
+        
+      - name: product_id
+        type: number
+        description: "Produit vendu"
+    
+    measures:
+      - name: quantite_vendue
+        type: sum
+        expr: "quantity"
+        description: "Quantité totale vendue"
+        
+      - name: ca_produits
+        type: sum
+        expr: "quantity * unit_price"
+        description: "Chiffre d'affaires produits"
+        
+      - name: prix_moyen_vente
+        type: avg
+        expr: "unit_price"
+        description: "Prix de vente moyen constaté"
+        
+      - name: taux_remise_moyen
+        type: avg
+        expr: "discount_percent"
+        description: "Taux de remise moyen appliqué"
+
+# ===============================================
+# MÉTRIQUES BUSINESS CALCULÉES
+# ===============================================
+calculated_fields:
+  
+  - name: segment_client_value
+    description: "Segmentation clients par valeur"
+    type: text
+    expr: |
+      CASE 
+        WHEN chiffre_affaires >= 15000 THEN 'VIP Diamond'
+        WHEN chiffre_affaires >= 10000 THEN 'VIP Premium'  
+        WHEN chiffre_affaires >= 5000 THEN 'VIP Gold'
+        WHEN chiffre_affaires >= 2000 THEN 'Client Fidèle'
+        ELSE 'Client Standard'
+      END
+      
+  - name: performance_produit_classe
+    description: "Classification performance produits"  
+    type: text
+    expr: |
+      CASE 
+        WHEN quantite_vendue >= 1000 THEN 'Best-seller'
+        WHEN quantite_vendue >= 500 THEN 'Populaire'
+        WHEN quantite_vendue >= 100 THEN 'Standard'
+        ELSE 'Faible rotation'
+      END
+      
+  - name: performance_magasin_categorie
+    description: "Catégorie de performance magasin"
+    type: text
+    expr: |
+      CASE 
+        WHEN chiffre_affaires >= 800000 THEN 'Top Performer'
+        WHEN chiffre_affaires >= 500000 THEN 'Bon Performer'
+        WHEN chiffre_affaires >= 200000 THEN 'Performer Moyen'
+        ELSE 'Sous-Performer'
+      END
+
+# ===============================================
+# RELATIONS ENTRE TABLES
+# ===============================================
+relationships:
+  
+  - name: commandes_to_clients
+    type: many_to_one
+    from: commandes_fait.customer_id
+    to: clients_dimension.customer_id
+    
+  - name: commandes_to_magasins
+    type: many_to_one
+    from: commandes_fait.store_id
+    to: magasins_dimension.store_id
+    
+  - name: detail_to_commandes
+    type: many_to_one
+    from: ventes_detail_fait.order_id
+    to: commandes_fait.order_id
+    
+  - name: detail_to_produits
+    type: many_to_one
+    from: ventes_detail_fait.product_id
+    to: produits_dimension.product_id
+    
+  - name: produits_to_categories
+    type: many_to_one
+    from: produits_dimension.category_id
+    to: categories_dimension.category_id
+
+# ===============================================
+# ÉCHANTILLONS DE QUESTIONS BUSINESS
+# ===============================================
+sample_questions:
+  
+  - "Qui sont mes clients VIP et quel est leur chiffre d'affaires ?"
+  - "Quels sont les produits best-sellers par catégorie ?"
+  - "Quelle est la performance de mes magasins par région ?"
+  - "Quel est le panier moyen par segment de clients ?"
+  - "Quels magasins ont le meilleur CA par région ?"
+  - "Quelles sont les tendances de vente par mois ?"
+  - "Quels produits ont la meilleure marge par catégorie ?"
+  - "Comment évoluent les ventes des clients VIP Diamond ?"
+  - "Quels sont les magasins sous-performers à améliorer ?"
+  - "Quel est le prix moyen de vente vs prix catalogue par produit ?"

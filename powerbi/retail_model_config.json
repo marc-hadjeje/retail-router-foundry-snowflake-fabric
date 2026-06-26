@@ -1,0 +1,332 @@
+{
+  "powerbi_model": {
+    "name": "Retail Analytics Demo",
+    "version": "1.0.0", 
+    "description": "Modèle Power BI pour l'analyse retail avec données Snowflake et Fabric",
+    "created_by": "Demo Snowflake Agents",
+    "last_modified": "2024-04-29"
+  },
+  
+  "data_connections": [
+    {
+      "name": "Snowflake_Retail_Main",
+      "type": "Snowflake", 
+      "server": "YOUR_SNOWFLAKE_ACCOUNT.snowflakecomputing.com",
+      "database": "RETAIL_DEMO",
+      "warehouse": "RETAIL_WH",
+      "schema": "MAIN",
+      "authentication": "Windows",
+      "import_mode": "DirectQuery",
+      "tables": [
+        "CUSTOMERS",
+        "PRODUCTS", 
+        "CATEGORIES",
+        "STORES",
+        "ORDERS",
+        "ORDER_ITEMS"
+      ]
+    },
+    {
+      "name": "Fabric_Retail_Analytics", 
+      "type": "Fabric_Lakehouse",
+      "workspace": "Retail Analytics Workspace",
+      "lakehouse": "retail_analytics_lh",
+      "import_mode": "Import",
+      "tables": [
+        "monthly_sales_summary",
+        "customer_segment_analysis",
+        "product_category_performance", 
+        "regional_store_performance"
+      ]
+    }
+  ],
+  
+  "data_model": {
+    "relationships": [
+      {
+        "from_table": "ORDERS",
+        "from_column": "CUSTOMER_ID",
+        "to_table": "CUSTOMERS", 
+        "to_column": "CUSTOMER_ID",
+        "cardinality": "many_to_one",
+        "cross_filter": "single",
+        "active": true
+      },
+      {
+        "from_table": "ORDERS",
+        "from_column": "STORE_ID",
+        "to_table": "STORES",
+        "to_column": "STORE_ID", 
+        "cardinality": "many_to_one",
+        "cross_filter": "single",
+        "active": true
+      },
+      {
+        "from_table": "ORDER_ITEMS",
+        "from_column": "ORDER_ID",
+        "to_table": "ORDERS",
+        "to_column": "ORDER_ID",
+        "cardinality": "many_to_one",
+        "cross_filter": "single", 
+        "active": true
+      },
+      {
+        "from_table": "ORDER_ITEMS", 
+        "from_column": "PRODUCT_ID",
+        "to_table": "PRODUCTS",
+        "to_column": "PRODUCT_ID",
+        "cardinality": "many_to_one",
+        "cross_filter": "single",
+        "active": true
+      },
+      {
+        "from_table": "PRODUCTS",
+        "from_column": "CATEGORY_ID", 
+        "to_table": "CATEGORIES",
+        "to_column": "CATEGORY_ID",
+        "cardinality": "many_to_one",
+        "cross_filter": "single",
+        "active": true
+      }
+    ],
+    
+    "calculated_tables": [
+      {
+        "name": "Date_Table",
+        "dax": "ADDCOLUMNS(CALENDAR(DATE(2020,1,1), DATE(2026,12,31)), \"Year\", YEAR([Date]), \"Month\", FORMAT([Date], \"MMMM\"), \"MonthNumber\", MONTH([Date]), \"Quarter\", \"Q\" & CEILING(MONTH([Date])/3,1), \"DayOfWeek\", WEEKDAY([Date]), \"DayName\", FORMAT([Date], \"dddd\"))"
+      }
+    ]
+  },
+  
+  "measures": {
+    "sales_metrics": [
+      {
+        "name": "Total Revenue",
+        "dax": "SUM(ORDER_ITEMS[LINE_TOTAL])",
+        "format": "Currency",
+        "description": "Chiffre d'affaires total toutes catégories"
+      },
+      {
+        "name": "Total Orders",
+        "dax": "DISTINCTCOUNT(ORDERS[ORDER_ID])",
+        "format": "Whole Number",
+        "description": "Nombre total de commandes"
+      },
+      {
+        "name": "Average Order Value",
+        "dax": "[Total Revenue] / [Total Orders]", 
+        "format": "Currency",
+        "description": "Panier moyen par commande"
+      },
+      {
+        "name": "Total Customers",
+        "dax": "DISTINCTCOUNT(ORDERS[CUSTOMER_ID])",
+        "format": "Whole Number", 
+        "description": "Nombre de clients uniques"
+      },
+      {
+        "name": "Revenue Growth MoM",
+        "dax": "VAR CurrentMonth = [Total Revenue] VAR PreviousMonth = CALCULATE([Total Revenue], DATEADD(Date_Table[Date], -1, MONTH)) RETURN DIVIDE(CurrentMonth - PreviousMonth, PreviousMonth, 0)",
+        "format": "Percentage",
+        "description": "Croissance du CA mensuel"
+      }
+    ],
+    
+    "product_metrics": [
+      {
+        "name": "Units Sold",
+        "dax": "SUM(ORDER_ITEMS[QUANTITY])",
+        "format": "Whole Number",
+        "description": "Quantités vendues"
+      },
+      {
+        "name": "Product Count",
+        "dax": "DISTINCTCOUNT(PRODUCTS[PRODUCT_ID])", 
+        "format": "Whole Number",
+        "description": "Nombre de produits distincts"
+      },
+      {
+        "name": "Avg Unit Price",
+        "dax": "AVERAGEX(ORDER_ITEMS, ORDER_ITEMS[UNIT_PRICE])",
+        "format": "Currency",
+        "description": "Prix unitaire moyen"
+      },
+      {
+        "name": "Profit Margin",
+        "dax": "VAR TotalCost = SUMX(ORDER_ITEMS, ORDER_ITEMS[QUANTITY] * RELATED(PRODUCTS[COST])) VAR TotalRevenue = [Total Revenue] RETURN DIVIDE(TotalRevenue - TotalCost, TotalRevenue, 0)",
+        "format": "Percentage", 
+        "description": "Marge bénéficiaire"
+      }
+    ],
+    
+    "customer_metrics": [
+      {
+        "name": "Customer Retention Rate",
+        "dax": "VAR CustomersThisMonth = CALCULATE([Total Customers], Date_Table[MonthNumber] = MONTH(TODAY())) VAR CustomersLastMonth = CALCULATE([Total Customers], Date_Table[MonthNumber] = MONTH(TODAY())-1) VAR ReturningCustomers = CALCULATE([Total Customers], Date_Table[MonthNumber] = MONTH(TODAY()) && CALCULATE([Total Orders], Date_Table[MonthNumber] = MONTH(TODAY())-1) > 0) RETURN DIVIDE(ReturningCustomers, CustomersLastMonth, 0)",
+        "format": "Percentage",
+        "description": "Taux de rétention mensuel"
+      },
+      {
+        "name": "Customer Lifetime Value",
+        "dax": "VAR AvgOrdersPerCustomer = DIVIDE([Total Orders], [Total Customers], 0) VAR AvgOrderValue = [Average Order Value] VAR EstimatedLifespan = 24 RETURN AvgOrdersPerCustomer * AvgOrderValue * EstimatedLifespan / 12",
+        "format": "Currency",
+        "description": "Valeur vie client estimée"
+      }
+    ],
+    
+    "store_metrics": [
+      {
+        "name": "Store Count",
+        "dax": "DISTINCTCOUNT(STORES[STORE_ID])",
+        "format": "Whole Number",
+        "description": "Nombre de magasins"
+      },
+      {
+        "name": "Revenue per Store", 
+        "dax": "DIVIDE([Total Revenue], [Store Count], 0)",
+        "format": "Currency",
+        "description": "CA moyen par magasin"
+      },
+      {
+        "name": "Revenue per Sqm",
+        "dax": "VAR TotalSurface = SUM(STORES[SURFACE_M2]) RETURN DIVIDE([Total Revenue], TotalSurface, 0)",
+        "format": "Currency",
+        "description": "CA par m² de surface"
+      }
+    ]
+  },
+  
+  "report_pages": [
+    {
+      "name": "Executive Dashboard",
+      "description": "Vue d'ensemble pour la direction",
+      "visuals": [
+        {
+          "type": "card",
+          "measure": "Total Revenue",
+          "position": {"x": 0, "y": 0, "width": 200, "height": 100}
+        },
+        {
+          "type": "card", 
+          "measure": "Revenue Growth MoM",
+          "position": {"x": 220, "y": 0, "width": 200, "height": 100}
+        },
+        {
+          "type": "line_chart",
+          "title": "Revenue Trend",
+          "x_axis": "Date_Table[Date]",
+          "y_axis": "Total Revenue",
+          "position": {"x": 0, "y": 120, "width": 600, "height": 300}
+        },
+        {
+          "type": "bar_chart",
+          "title": "Top Products by Revenue", 
+          "x_axis": "PRODUCTS[NAME]",
+          "y_axis": "Total Revenue",
+          "top_n": 10,
+          "position": {"x": 620, "y": 120, "width": 400, "height": 300}
+        }
+      ]
+    },
+    
+    {
+      "name": "Sales Analysis",
+      "description": "Analyse détaillée des ventes",
+      "filters": [
+        {"table": "Date_Table", "column": "Year"},
+        {"table": "STORES", "column": "REGION"},
+        {"table": "CATEGORIES", "column": "NAME"}
+      ],
+      "visuals": [
+        {
+          "type": "matrix",
+          "title": "Sales by Category & Month",
+          "rows": "CATEGORIES[NAME]",
+          "columns": "Date_Table[Month]", 
+          "values": "Total Revenue"
+        },
+        {
+          "type": "map",
+          "title": "Revenue by Region",
+          "location": "STORES[CITY]",
+          "size": "Total Revenue"
+        }
+      ]
+    },
+    
+    {
+      "name": "Customer Analysis", 
+      "description": "Analyse de la clientèle",
+      "visuals": [
+        {
+          "type": "donut_chart",
+          "title": "Customers by Segment",
+          "legend": "CUSTOMERS[CUSTOMER_SEGMENT]",
+          "values": "Total Customers"
+        },
+        {
+          "type": "scatter_plot",
+          "title": "AOV vs Customer Frequency",
+          "x_axis": "Average Order Value",
+          "y_axis": "Total Orders", 
+          "size": "Total Revenue"
+        }
+      ]
+    },
+    
+    {
+      "name": "Store Performance",
+      "description": "Performance par magasin",
+      "visuals": [
+        {
+          "type": "table",
+          "title": "Store Performance Matrix",
+          "columns": [
+            "STORES[NAME]",
+            "STORES[CITY]", 
+            "Total Revenue",
+            "Total Orders",
+            "Revenue per Store"
+          ],
+          "sorting": "Total Revenue DESC"
+        }
+      ]
+    }
+  ],
+  
+  "refresh_settings": {
+    "automatic_refresh": true,
+    "refresh_frequency": "Daily",
+    "refresh_time": "06:00",
+    "incremental_refresh": {
+      "enabled": true,
+      "rolling_window": "2 years",
+      "detect_data_changes": true
+    }
+  },
+  
+  "security": {
+    "row_level_security": [
+      {
+        "role": "Store Manager",
+        "filter": "[STORES[MANAGER_EMAIL]] = USERNAME()",
+        "tables": ["ORDERS", "ORDER_ITEMS"]
+      },
+      {
+        "role": "Regional Manager", 
+        "filter": "[STORES[REGION]] = LOOKUPVALUE(UserRegions[Region], UserRegions[Email], USERNAME())",
+        "tables": ["STORES", "ORDERS"]
+      }
+    ]
+  },
+  
+  "deployment": {
+    "workspace": "Retail Analytics Workspace",
+    "app_name": "Retail Demo Dashboard",
+    "sharing": {
+      "public": false,
+      "embed_enabled": true,
+      "export_enabled": true
+    }
+  }
+}

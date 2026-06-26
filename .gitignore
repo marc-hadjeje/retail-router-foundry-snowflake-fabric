@@ -1,0 +1,30 @@
+# Secrets & environment
+.env
+.env.*
+*.key
+*.pem
+secrets.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Generated data
+*.csv
+*.parquet
+data_generation/output/
+data/
+
+# Node
+node_modules/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.log

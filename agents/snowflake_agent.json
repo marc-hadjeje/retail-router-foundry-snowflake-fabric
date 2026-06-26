@@ -1,0 +1,174 @@
+{
+  "agent_name": "Snowflake Retail Agent",
+  "agent_id": "snowflake-retail-001",
+  "version": "1.0.0",
+  "description": "Agent IA spécialisé dans l'analyse des données retail détaillées via Snowflake",
+  "capabilities": [
+    "Requêtes SQL complexes sur données transactionnelles",
+    "Analyse en temps réel des ventes et performances",
+    "Segmentation client avancée",
+    "Reporting produits et magasins",
+    "Analyse des tendances et patterns d'achat"
+  ],
+  
+  "connection": {
+    "type": "snowflake",
+    "account": "nfhtxdc-gg96899",
+    "database": "RETAIL_DEMO",
+    "warehouse": "COMPUTE_WH",
+    "schema": "PUBLIC",
+    "user": "MARCHADJEJE",
+    "password": "Ilana&Gabriel2026",
+    "role": "ACCOUNTADMIN"
+  },
+  
+  "data_sources": [
+    {
+      "name": "customers",
+      "table": "CUSTOMERS", 
+      "description": "Données clients avec segmentation et historique",
+      "key_fields": ["CUSTOMER_ID", "EMAIL", "CUSTOMER_SEGMENT"]
+    },
+    {
+      "name": "products",
+      "table": "PRODUCTS",
+      "description": "Catalogue produits avec prix et stock",
+      "key_fields": ["PRODUCT_ID", "NAME", "BRAND", "CATEGORY_ID"]
+    },
+    {
+      "name": "orders",
+      "table": "ORDERS",
+      "description": "Commandes clients avec statuts et montants",
+      "key_fields": ["ORDER_ID", "CUSTOMER_ID", "ORDER_DATE", "STATUS"]
+    },
+    {
+      "name": "order_items", 
+      "table": "ORDER_ITEMS",
+      "description": "Lignes de commande détaillées",
+      "key_fields": ["ORDER_ITEM_ID", "ORDER_ID", "PRODUCT_ID", "QUANTITY"]
+    },
+    {
+      "name": "stores",
+      "table": "STORES",
+      "description": "Magasins et points de vente",
+      "key_fields": ["STORE_ID", "NAME", "CITY", "STORE_TYPE"]
+    },
+    {
+      "name": "categories",
+      "table": "CATEGORIES", 
+      "description": "Catégories de produits hiérarchiques",
+      "key_fields": ["CATEGORY_ID", "NAME", "PARENT_CATEGORY_ID"]
+    }
+  ],
+  
+  "analytical_views": [
+    {
+      "name": "product_sales",
+      "view": "RETAIL_DEMO.ANALYTICS.V_PRODUCT_SALES",
+      "description": "Performance détaillée des produits avec métriques de vente"
+    },
+    {
+      "name": "store_performance", 
+      "view": "RETAIL_DEMO.ANALYTICS.V_STORE_PERFORMANCE",
+      "description": "KPIs et performances par magasin"
+    },
+    {
+      "name": "customer_analysis",
+      "view": "RETAIL_DEMO.ANALYTICS.V_CUSTOMER_ANALYSIS", 
+      "description": "Analyse approfondie du comportement client"
+    },
+    {
+      "name": "sales_trends",
+      "view": "RETAIL_DEMO.ANALYTICS.V_SALES_TRENDS",
+      "description": "Tendances temporelles et saisonnalité"
+    }
+  ],
+  
+  "prompt_templates": {
+    "system_prompt": "Tu es un expert en analyse retail avec accès à une base de données Snowflake complète. Tu peux analyser les ventes, les clients, les produits et les performances des magasins. Réponds toujours avec des données précises et des insights actionnables. Utilise les vues analytiques quand c'est approprié pour des performances optimales.",
+    
+    "query_examples": [
+      {
+        "question": "Quels sont les 10 produits les plus vendus ce mois ?",
+        "sql": "SELECT PRODUCT_NAME, BRAND, TOTAL_QUANTITY_SOLD, TOTAL_REVENUE FROM RETAIL_DEMO.ANALYTICS.V_PRODUCT_SALES WHERE LAST_SALE_DATE >= DATE_TRUNC('MONTH', CURRENT_DATE()) ORDER BY TOTAL_QUANTITY_SOLD DESC LIMIT 10;"
+      },
+      {
+        "question": "Analyser la performance des magasins Premium",
+        "sql": "SELECT STORE_NAME, CITY, TOTAL_REVENUE, UNIQUE_CUSTOMERS, AVG_ORDER_VALUE, DELIVERY_SUCCESS_RATE FROM RETAIL_DEMO.ANALYTICS.V_STORE_PERFORMANCE WHERE STORE_TYPE = 'Premium' ORDER BY TOTAL_REVENUE DESC;"
+      },
+      {
+        "question": "Segmentation des clients VIP",
+        "sql": "SELECT CUSTOMER_NAME, TOTAL_SPENT, TOTAL_ORDERS, AVG_ORDER_VALUE, LIFECYCLE_STATUS FROM RETAIL_DEMO.ANALYTICS.V_CUSTOMER_ANALYSIS WHERE CUSTOMER_SEGMENT = 'Premium' AND TOTAL_SPENT > 5000 ORDER BY TOTAL_SPENT DESC;"
+      }
+    ]
+  },
+  
+  "tools": [
+    {
+      "name": "sql_query",
+      "description": "Exécuter des requêtes SQL personnalisées sur la base retail",
+      "parameters": {
+        "query": "string",
+        "limit": "integer (optional, default 100)"
+      }
+    },
+    {
+      "name": "sales_analysis", 
+      "description": "Analyse rapide des ventes par période ou critères",
+      "parameters": {
+        "period": "string (day, week, month, year)",
+        "filter": "string (optional)"
+      }
+    },
+    {
+      "name": "customer_lookup",
+      "description": "Recherche détaillée d'un client par ID ou email",
+      "parameters": {
+        "customer_id": "integer (optional)",
+        "email": "string (optional)"
+      }
+    },
+    {
+      "name": "product_performance",
+      "description": "Analyse de performance d'un ou plusieurs produits",
+      "parameters": {
+        "product_ids": "array of integers (optional)",
+        "category": "string (optional)",
+        "brand": "string (optional)"
+      }
+    },
+    {
+      "name": "store_comparison",
+      "description": "Comparaison de performances entre magasins",
+      "parameters": {
+        "store_ids": "array of integers (optional)", 
+        "region": "string (optional)",
+        "store_type": "string (optional)"
+      }
+    }
+  ],
+  
+  "security": {
+    "allowed_operations": ["SELECT"],
+    "forbidden_operations": ["INSERT", "UPDATE", "DELETE", "DROP", "CREATE"],
+    "row_level_security": false,
+    "data_masking": {
+      "customer_email": "partial",
+      "customer_phone": "full"
+    }
+  },
+  
+  "performance": {
+    "query_timeout": 30,
+    "max_rows_returned": 10000,
+    "cache_duration": 300,
+    "auto_explain": true
+  },
+  
+  "monitoring": {
+    "log_queries": true,
+    "track_usage": true,
+    "alert_on_errors": true,
+    "performance_metrics": ["execution_time", "rows_scanned", "cache_hits"]
+  }
+}

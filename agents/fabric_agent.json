@@ -1,0 +1,220 @@
+{
+  "agent_name": "Fabric Data Retail Agent",
+  "agent_id": "fabric-retail-001", 
+  "version": "1.0.0",
+  "description": "Agent IA spécialisé dans l'analyse des données retail agrégées via Microsoft Fabric",
+  "capabilities": [
+    "Analyse des KPIs et métriques agrégées",
+    "Reporting exécutif et dashboards", 
+    "Analyse des tendances macro et insights stratégiques",
+    "Comparaisons multi-dimensionnelles",
+    "Prédictions et forecasting sur données historiques"
+  ],
+  
+  "connection": {
+    "type": "fabric_lakehouse",
+    "workspace_id": "YOUR_FABRIC_WORKSPACE_ID",
+    "lakehouse_name": "retail_analytics_lh", 
+    "endpoint": "YOUR_FABRIC_ENDPOINT",
+    "authentication": {
+      "type": "azure_ad",
+      "tenant_id": "YOUR_TENANT_ID",
+      "client_id": "YOUR_CLIENT_ID"
+    }
+  },
+  
+  "data_sources": [
+    {
+      "name": "monthly_sales_agg",
+      "table": "monthly_sales_summary",
+      "description": "Agrégations mensuelles des ventes par magasin et catégorie",
+      "update_frequency": "daily",
+      "key_metrics": ["total_revenue", "order_count", "avg_order_value", "unique_customers"]
+    },
+    {
+      "name": "customer_segments_agg",
+      "table": "customer_segment_analysis", 
+      "description": "Métriques agrégées par segment client",
+      "update_frequency": "weekly",
+      "key_metrics": ["segment_revenue", "customer_count", "retention_rate", "ltv"]
+    },
+    {
+      "name": "product_performance_agg",
+      "table": "product_category_performance",
+      "description": "Performance agrégée par catégorie et brand",
+      "update_frequency": "daily",
+      "key_metrics": ["category_revenue", "units_sold", "margin", "inventory_turnover"]
+    },
+    {
+      "name": "geographic_performance",
+      "table": "regional_store_performance", 
+      "description": "Performances géographiques agrégées par région/ville",
+      "update_frequency": "daily",
+      "key_metrics": ["regional_revenue", "store_count", "market_penetration", "growth_rate"]
+    },
+    {
+      "name": "seasonal_trends",
+      "table": "seasonal_analysis",
+      "description": "Tendances saisonnières et patterns temporels",
+      "update_frequency": "weekly", 
+      "key_metrics": ["seasonal_index", "yoy_growth", "trend_direction", "volatility"]
+    }
+  ],
+  
+  "kpi_definitions": [
+    {
+      "name": "Revenue Growth",
+      "calculation": "(current_period_revenue - previous_period_revenue) / previous_period_revenue * 100",
+      "format": "percentage",
+      "target": 15.0
+    },
+    {
+      "name": "Customer Acquisition Cost",
+      "calculation": "marketing_spend / new_customers_count", 
+      "format": "currency",
+      "target": 25.0
+    },
+    {
+      "name": "Average Order Value",
+      "calculation": "total_revenue / total_orders",
+      "format": "currency", 
+      "benchmark": 85.0
+    },
+    {
+      "name": "Customer Lifetime Value",
+      "calculation": "avg_order_value * purchase_frequency * customer_lifespan",
+      "format": "currency",
+      "target": 500.0
+    },
+    {
+      "name": "Inventory Turnover",
+      "calculation": "cost_of_goods_sold / average_inventory_value",
+      "format": "ratio",
+      "target": 12.0
+    }
+  ],
+  
+  "prompt_templates": {
+    "system_prompt": "Tu es un analyste business senior spécialisé dans les données retail agrégées. Tu travailles avec des KPIs consolidés, des tendances macro et des insights stratégiques. Fournis toujours des recommandations actionnable basées sur les données agrégées et les benchmarks industrie. Privilégie les visualisations et les comparaisons temporelles.",
+    
+    "analysis_examples": [
+      {
+        "question": "Comment évoluent nos ventes par région ce trimestre ?",
+        "approach": "Analyser les données regional_store_performance pour calculer les variations trimestrielles et identifier les régions sur/sous-performantes avec recommandations spécifiques"
+      },
+      {
+        "question": "Quel est l'impact de nos segments Premium sur la rentabilité ?", 
+        "approach": "Utiliser customer_segment_analysis pour calculer la contribution margin par segment et analyser les métriques de rétention et LTV"
+      },
+      {
+        "question": "Quelles sont nos tendances saisonnières principales ?",
+        "approach": "Explorer seasonal_analysis pour identifier les patterns récurrents, calculer les index saisonniers et prédire les pics/creux"
+      }
+    ]
+  },
+  
+  "tools": [
+    {
+      "name": "kpi_dashboard",
+      "description": "Génère un dashboard avec les KPIs clés pour une période donnée",
+      "parameters": {
+        "period": "string (week, month, quarter, year)",
+        "comparison": "string (optional: previous_period, yoy)",
+        "segments": "array (optional: customer_segments, regions, categories)"
+      }
+    },
+    {
+      "name": "trend_analysis",
+      "description": "Analyse des tendances avec prédictions",
+      "parameters": {
+        "metric": "string (revenue, customers, orders, etc.)",
+        "timeframe": "string (3m, 6m, 12m, 24m)",
+        "granularity": "string (daily, weekly, monthly)"
+      }
+    },
+    {
+      "name": "comparative_analysis",
+      "description": "Comparaison multi-dimensionnelle (stores, regions, segments)",
+      "parameters": {
+        "dimension": "string (store, region, segment, category)",
+        "metrics": "array of strings",
+        "top_n": "integer (optional, default 10)"
+      }
+    },
+    {
+      "name": "forecast_model",
+      "description": "Prévisions basées sur l'historique agrégé",
+      "parameters": {
+        "target_metric": "string",
+        "forecast_horizon": "integer (months)", 
+        "confidence_level": "float (default 0.95)"
+      }
+    },
+    {
+      "name": "cohort_analysis", 
+      "description": "Analyse de cohortes clients agrégées",
+      "parameters": {
+        "cohort_period": "string (month, quarter)",
+        "metric": "string (retention, revenue, frequency)",
+        "periods_back": "integer (default 12)"
+      }
+    }
+  ],
+  
+  "aggregation_rules": [
+    {
+      "source": "snowflake.orders",
+      "target": "monthly_sales_summary",
+      "frequency": "daily",
+      "sql": "INSERT INTO monthly_sales_summary SELECT DATE_TRUNC('month', order_date) as month, store_id, SUM(total_amount) as revenue, COUNT(*) as orders, AVG(total_amount) as aov FROM orders WHERE order_date >= CURRENT_DATE - 30 GROUP BY month, store_id"
+    },
+    {
+      "source": "snowflake.customers + orders",
+      "target": "customer_segment_analysis", 
+      "frequency": "weekly",
+      "sql": "UPDATE customer_segment_analysis SET segment_revenue = (SELECT SUM(o.total_amount) FROM orders o JOIN customers c ON o.customer_id = c.customer_id WHERE c.customer_segment = segment_name AND o.order_date >= CURRENT_DATE - 7)"
+    }
+  ],
+  
+  "visualization_preferences": {
+    "chart_types": {
+      "trend_analysis": "line_chart",
+      "comparisons": "bar_chart", 
+      "distributions": "pie_chart",
+      "correlations": "scatter_plot",
+      "geographic": "map_chart"
+    },
+    "color_palette": ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"],
+    "interactive": true,
+    "export_formats": ["png", "pdf", "excel"]
+  },
+  
+  "alerts": [
+    {
+      "name": "Revenue Drop Alert",
+      "condition": "weekly_revenue < previous_week_revenue * 0.9", 
+      "severity": "high",
+      "recipients": ["retail_manager@company.com"]
+    },
+    {
+      "name": "Customer Churn Alert",
+      "condition": "active_customers_30d < active_customers_60d * 0.95",
+      "severity": "medium", 
+      "recipients": ["customer_success@company.com"]
+    }
+  ],
+  
+  "performance": {
+    "cache_duration": 3600,
+    "refresh_schedule": "0 6 * * *",
+    "parallel_processing": true,
+    "auto_scaling": true
+  },
+  
+  "security": {
+    "data_access_level": "aggregated_only",
+    "no_pii_access": true,
+    "audit_logging": true,
+    "role_based_access": ["analyst", "manager", "executive"]
+  }
+}
