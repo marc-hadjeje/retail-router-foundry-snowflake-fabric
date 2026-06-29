@@ -5,6 +5,18 @@ dispatches each question to the right **child agent**: detailed customer/order d
 from **Snowflake** (Cortex), or aggregated strategic KPIs from **Microsoft Fabric**
 (Power BI semantic model).
 
+![Retail Router demo UI](docs/screenshot.png)
+
+## How it works
+
+Ask one question — the Router classifies it and calls a single specialist:
+
+- *"Top 3 regions by revenue?"* → **Fabric** (aggregated KPIs) → answers from the Power BI semantic model.
+- *"Profile of the highest-spending customer?"* → **Snowflake** (detail) → Philippe Dubois, Grenoble, €210,971.29.
+
+One brain, two specialists, no data migration. Each answer cites its source, and the UI
+tags which child responded.
+
 ## Architecture — Router + child agents
 
 ```
