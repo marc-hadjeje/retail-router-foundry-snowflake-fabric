@@ -1,7 +1,7 @@
 """
 create_router_agent.py
 ======================
-Creates the orchestrator agent "Retail Router (Azure x Snowflake)" in Azure AI Foundry.
+Creates the orchestrator agent "Retail Router (Azure x Snowflake)" in Microsoft Foundry.
 
 Prerequisites
 -------------

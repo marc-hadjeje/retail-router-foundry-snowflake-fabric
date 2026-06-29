@@ -235,7 +235,7 @@ def main():
         sys.exit(1)
 
     print("=" * 70)
-    print("Snowflake MCP Activation -- Retail Router (Azure AI Foundry)")
+    print("Snowflake MCP Activation -- Retail Router (Microsoft Foundry)")
     print("=" * 70)
     print(f"  JWT: {jwt[:20]}... (masked)")
 

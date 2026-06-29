@@ -1,4 +1,4 @@
-# README — Retail Orchestrator Agent (Azure AI Foundry x Snowflake)
+# README — Retail Orchestrator Agent (Microsoft Foundry x Snowflake)
 
 ## Architecture
 
@@ -7,7 +7,7 @@ User
     |
     v
 +--------------------------------------------------------------+
-|   RETAIL ROUTER  (Azure AI Foundry -- gpt-4o)               |
+|   RETAIL ROUTER (Microsoft Foundry -- gpt-4o)               |
 |   Agent: Retail-Router-Azure-x-Snowflake:1                  |
 |   Endpoint: aistudiodemo2519002580.services.ai.azure.com    |
 |                                                              |

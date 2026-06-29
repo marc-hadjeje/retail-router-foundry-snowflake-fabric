@@ -1,4 +1,4 @@
-# Retail Router — Azure AI Foundry × Snowflake × Microsoft Fabric
+# Retail Router — Microsoft Foundry × Snowflake × Microsoft Fabric
 
 A retail analytics demo built around an **orchestrator agent (the Router)** that
 dispatches each question to the right **child agent**: detailed customer/order data
@@ -29,7 +29,7 @@ tags which child responded.
                            |
                            v
         +--------------------------------------------+
-        |   RETAIL ROUTER  (Azure AI Foundry, gpt-4o)|
+        |   RETAIL ROUTER (Microsoft Foundry, gpt-4o)|
         |   Agent: Retail-Router-Azure-x-Snowflake   |
         |   Classifies the question, then routes:    |
         +------------------+-------------------------+
@@ -45,7 +45,7 @@ tags which child responded.
    +-----------------------------+   +-------------------------------+
 ```
 
-- **Router (parent):** Azure AI Foundry orchestrator. Picks exactly one child by
+- **Router (parent):** Microsoft Foundry orchestrator. Picks exactly one child by
   default; uses both only when a question mixes detail + aggregation. Cites its source.
 - **Fabric child:** aggregated, strategic questions (KPIs, regions, segments, trends).
 - **Snowflake child:** detailed, operational questions (a named customer, an order, a
@@ -85,5 +85,5 @@ JWT or secret.** Set the Snowflake token before running scripts: `$env:SNOWFLAKE
 
 ## Prerequisites
 
-Python 3.10+, a Snowflake account with Cortex, Microsoft Fabric, Azure AI Foundry
+Python 3.10+, a Snowflake account with Cortex, Microsoft Fabric, Microsoft Foundry
 (gpt-4o), `pip install -r requirements.txt`.
