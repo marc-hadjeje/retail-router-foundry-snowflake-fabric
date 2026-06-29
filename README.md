@@ -17,6 +17,11 @@ Ask one question — the Router classifies it and calls a single specialist:
 One brain, two specialists, no data migration. Each answer cites its source, and the UI
 tags which child responded.
 
+### Slides
+
+![Foundry — keystone of the agentic architecture](docs/slides/slide1.png)
+![The conductor picks the expert](docs/slides/slide2.png)
+
 ## Architecture — Router + child agents
 
 ```
